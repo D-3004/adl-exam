@@ -1,0 +1,72 @@
+Exp2
+Aim: To Build Your Application using AWS CodeBuild and Deploy on S3 / SEBS using AWS CodePipeline, deploy Sample Application on EC2 instance using AWS CodeDeploy.
+
+Steps:
+1. Create a deployment environment
+
+2. Name your web app and choose PHP from the drop-down menu(or any other 
+language you are interested in) and then click Create Application.
+
+3. Get a copy of the sample code.
+• Visit our GitHub repository containing the sample code at 
+https://github.com/imoisharma/aws-codepipeline-s3-codedeploy-linux-2.0 
+• Click the dist folder.
+
+4. Save the source files to your computer: 
+• Click the file named aws-codepipeline-s3-aws-codedeploy_linux.zip 
+• Click View Raw. 
+• Save the sample file to your local computer.
+
+5. open the Amazon S3 console and create your Amazon S3 bucket: 
+• Click Create Bucket 
+• Bucket Name: type a unique name for your bucket, such as awscodepipeline-demobucket variables. All bucket names in Amazon S3 must be unique, so use 
+one of your own, not one with the name shown in the example. 
+• Region: In the drop-down, select the region where you will create your pipeline, 
+such as ap- South-1 
+• Click Create.
+
+6. The console displays the newly created bucket, which is empty.
+• Click Properties. 
+• Expand Versioning and select Enable Versioning. When versioning is enabled, 
+Amazon S3 saves every version of every object in the bucket.
+
+7. You will now upload the sample code to the Amazon S3 bucket:
+• Click Upload. 
+• Follow the on-screen directions to upload the .zip file containing the sample code you downloaded from GitHub.
+
+8. Create your Pipeline - In this step, you will create and configure a simple pipeline with two actions: source and deploy. You will provide CodePipeline with the locations of your source repository and deployment environment. 
+
+9. Deploy Stage: 
+• Deployment provider: Click AWS Elastic Beanstalk. 
+• Application name: MYEBS. 
+• Environment name: Click Myebs-env.
+
+10. Commit a change and then update your app 
+In this step, you will revise the sample code and commit the change to your repository. 
+CodePipeline will detect your updated sample code and then automatically initiate 
+deploying it to your EC2 instance via Elastic Beanstalk. 
+
+11. Visit your own copy of the repository that you forked in GitHub. 
+• Open index.html 
+• Select the Edit icon
+
+12. Update the webpage by copying and pasting the following text on line 30:
+
+13. Commit the change to your repository. 
+
+14. Return to your pipeline in the CodePipeline console. In a few minutes, you should see the Source change to blue, indicating that the pipeline has detected the changes you made to your source repository. Once this occurs, it will automatically move the updated code to Elastic Beanstalk. 
+• After the pipeline status displays Succeeded, in the status area for the Beta stage, 
+click AWS Elastic Beanstalk.
+
+15. The AWS Elastic Beanstalk console opens with the details of the deployment. Select the environment you created earlier. And click the URL again from EBS environment again. 
+
+16. Clean up your resources 
+First, you will delete your pipeline: 
+• In the pipeline view, click Edit. 
+• Click Delete. 
+• Type in the name of your pipeline and click Delete.
+
+Second, delete your Elastic Beanstalk application:
+• Visit the Elastic Beanstalk console. 
+• Click Actions. 
+• Then click Terminate Environment.

@@ -1,0 +1,19 @@
+Exp5
+Aim: To understand terraform lifecycle, core concepts/terminologies and install it on a Linux Machine.
+
+Steps:
+1. Terraform uses HashiCorp Configuration Language (HCL) to manage environments of Operators and Infrastructure teams. To download go to site:
+https://www.terraform.io/downloads.html 
+Select the appropriate package for your operating system and architecture. 
+
+2. unzip the archive by using below command:
+unzip file.zip
+
+3. Change the directory to unzipped folder
+cd unzip-folder
+
+4. Move the terraform binary to a directory included in your system's PATH in my case 
+sudo mv terraform /usr/local/bin/
+
+5. To check whether Terraform is installed, run:
+terraform -v
