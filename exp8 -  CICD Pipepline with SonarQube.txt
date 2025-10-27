@@ -1,0 +1,71 @@
+Exp8
+Aim: Create a Jenkins CICD Pipeline with SonarQube / GitLab Integration to perform a static analysis of the code to detect bugs, code smells, and security vulnerabilities on a sample Java application.
+
+Steps:
+1) Install and configure a Jenkins and SonarQube CICD environment using Docker containers.
+2) Configure Jenkins with the SonarQube Scanner plugin for automated static code analysis.
+3) Create and set up a Jenkins build pipeline using a Jenkins file stored within a GitHub repo.
+4) Use the SonarQube web application to examine and review the generated static analysis report.
+5) Use the Blue Ocean Plugin to review Pipeline Steps.
+
+Note: From Step 1 and 2 we have already done in Expt. 7 as a Pre-requiste required for Integration settings of Jenkins SAST with SonarQube so in this Experiment we will continue from 3rd Step.
+
+1. Check the contents of jenkins-sonarqube repository which we are using for Pipeline Project.
+2. Check path for the Source and Test Java Programs from repository 
+3. Update sonar host as http://127.0.0.1:9000 in POM.xml which is available in Project on 
+Github.
+
+
+Create the Jenkins Pipeline
+This section follows pages 12-15 of your manual.
+Create a New Job:
+From the main Jenkins dashboard, click New Item.
+Enter an item name: SonarQube.
+Select Pipeline and click OK.
+Configure the Pipeline:
+On the configuration page, under the General tab, check the GitHub project box.
+In the Project url field, enter: https://github.com/vishal003/jenkins-sonarqube.
+
+Scroll down to the Pipeline section.
+
+Make sure the Definition is set to Pipeline script.
+In the Script text box, copy and paste the Groovy code exactly from your manual:
+
+node
+{
+stage('clonning from GIT'){
+git branch: 'main', credentialsId: 'GIT_REPO', url: 'https://github.com/vishal003/jenkins-sonarqube.git
+}
+
+stage('SonarQube Analysis') {
+def scannerHome = tool 'SonarQube' 
+withSonarQubeEnv('SonarQube') {
+sh """/var/lib/jenkins/tools/hudson.plugins.sonar. SonarRunnerInstallation/SonarQube/bin/sonar-scanner \
+-D sonar.projectVersion = 1.0-SNAPSHOT \
+-D sonar.login=admin \
+-D sonar.password=India@11 \
+-D sonar.projectBaseDir=/var/lib/jenkins/workspace/SonarQube \
+-D sonar.projectKey-my-app1 \
+-D sonar.sourceEncoding=UTF-8 \
+-D sonar.language=java \
+-D sonar.sources-project/src/main/java \
+-D sonar.tests-project/src/test/java \
+-D sonar.host.url=http://127.0.0.1:9000/"""
+}
+
+
+- After creating a Pipeline Script Build it in Jenkins , Click on save and then Click on Build Now
+
+- Click on Console Output to check output whether build is successful or not. 
+
+- Click on Pipeline Steps to check Sequence of events during building of pipeline. 
+
+- Open Blue Ocean Plugin in Jenkins to visualize the pipeline execution stage by stage and view logs.
+
+- Check the analysis report of the project on SonarQube.
+
+- If you login to the SonarQube and visit the Dashboard, you will see the Analysis of the project there.
+
+- For Detailed Report for code analysis you can go to application overview and check for all Bugs, Vulnerabilities, code smells and all parameters.
+
+ 
