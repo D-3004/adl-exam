@@ -57,5 +57,38 @@ Then, we need to set-up the SonarQube Scanner to scan the source code in the var
 b. SonarQube Scanner in Jenkins Pipeline
 Now, It’s time to integrate the SonarQube Scanner in the Jenkins Pipeline. For the same, we are going to add one more stage in the Jenkinsfile called SonarQube and inside that, I am adding the following settings and code.
 
+Create the Jenkins Pipeline
+This section follows pages 12-15 of your manual.
+Create a New Job:
+From the main Jenkins dashboard, click New Item.
+Enter an item name: SonarQube.
+Select Pipeline and click OK.
+Configure the Pipeline:
+On the configuration page, under the General tab, check the GitHub project box.
+In the Project url field, enter: https://github.com/vishal003/jenkins-sonarqube.
+
+Scroll down to the Pipeline section.
+
+Make sure the Definition is set to Pipeline script.
+In the Script text box, copy and paste the Groovy code exactly from your manual :
+
+
+node{
+
+    stage('cloning from git'){
+        git branch: 'main', credentialsID: 'GIT REPO', url: 'https://github.com/vishal003/jenkins-sonarqube'
+    }
+}
+
+Click Save.
+
+Run the Pipeline:
+You will be taken to the job's page. Click Build Now on the left menu.
+
+A build will start. You can click on the build number (e.g., #1) and then click Console Output to view the log.
+You should see it clone the repository and finish with Finished: SUCCESS.
+As your manual concludes, you have successfully installed Jenkins and SonarQube and created a CI pipeline using a GitHub repository.
+
+
 
 
