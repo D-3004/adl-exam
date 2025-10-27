@@ -1,0 +1,207 @@
+ADL Oral Writeup Content
+
+=========================
+Exp1: Cloud9 and IAM
+=========================
+
+AWS Cloud9
+
+DEFINITION: AWS Cloud9 is a cloud-based Integrated Development Environment (IDE) that lets you write, run, and debug code using just a web browser.
+METHODOLOGY: We provision a Cloud9 environment, which runs on an underlying EC2 instance or other AWS compute. This environment comes pre-packaged with essential tools like the AWS CLI, Git, Docker, and SDKs for various languages (e.g., Python, Node.js).
+NO LOCAL SETUP: It eliminates the need for local machine configuration, ensuring a consistent development environment for all team members.
+COLLABORATION: Cloud9 supports real-time collaboration, allowing multiple users to code together in the same environment (pair programming).
+AWS INTEGRATION: It provides a built-in terminal with pre-authenticated AWS credentials (via IAM), making it seamless to run AWS CLI commands and deploy applications directly to AWS services like EC2 or Lambda.
+KEY TERMINOLOGIES: Cloud-based IDE, EC2 environment, AWS CLI integration, Pair programming, Pre-configured SDKs.
+
+
+AWS IAM (Identity and Access Management)
+
+DEFINITION: IAM is a global AWS service that securely manages identities and access to AWS services and resources. It controls "who" (authentication) can do "what" (authorization).
+CORE COMPONENTS:
+  - Users: End entities (people, applications) that interact with AWS.
+  - Groups: Collections of users. Applying a policy to a group grants permissions to all users in it.
+  - Policies: JSON documents that explicitly define permissions (e.g., "Allow" S3:GetObject on "Bucket-A").
+  - Roles: An identity with permissions that can be assumed temporarily by users or services (like EC2) without needing long-term credentials.
+PRINCIPLE OF LEAST PRIVILEGE: IAM is built around this principle, which means granting only the minimum permissions necessary for a user or service to perform its required tasks.
+METHODOLOGY: In our experiments, we create IAM roles to grant services (like CodePipeline or EC2) the permissions they need to interact with other services (like S3 or CodeDeploy). We also attach policies to IAM users to restrict access, rather than using the all-powerful root account.
+KEY TERMINOLOGIES: Authentication vs. Authorization, Users, Groups, Roles, Policies (JSON), Principle of Least Privilege, MFA (Multi-Factor Authentication).
+
+===========================================================
+Exp2&3: Build and Deploy (CodeBuild, S3, CodePipeline, EC2)
+===========================================================
+
+AWS CodeBuild
+
+DEFINITION: AWS CodeBuild is a fully managed, serverless continuous integration (CI) service.
+FUNCTION: It compiles source code, runs unit tests, and produces software packages (artifacts) that are ready to deploy.
+METHODOLOGY: CodeBuild runs in a clean, isolated Docker container environment. It follows instructions defined in a `buildspec.yml` file, which is part of the source code.
+BUILDSPEC.YML: This YAML file defines the build process in "phases":
+  - install: Setting up the environment and installing dependencies.
+  - pre_build: Commands to run before the build (e.g., login to Docker registry).
+  - build: The main build commands (e.g., `mvn clean install`, `docker build`).
+  - post_build: Final commands (e.g., running tests, pushing artifacts).
+SERVERLESS AND SCALABLE: As a fully managed service, we don't need to provision or manage build servers. It scales automatically to handle build volume.
+ARTIFACTS: The output of the build (e.g., a JAR file, ZIP file, or Docker image) is called an artifact, which is typically stored in Amazon S3.
+KEY TERMINOLOGIES: Fully managed CI, `buildspec.yml`, Build phases, Artifacts, Serverless, Pay-per-use.
+
+
+Amazon S3 (Simple Storage Service)
+
+DEFINITION: S3 is a highly durable and scalable object storage service. It stores data as "objects" within "buckets."
+USE CASES: S3 is used for a wide range of scenarios, including data backups and disaster recovery, storing application data, big data analytics, and hosting static websites.
+ROLE IN CI/CD: In our pipeline, S3 serves two key roles:
+  1. Source: CodePipeline can fetch the source code (e.g., as a .zip file) from an S3 bucket.
+  2. Artifact Store: CodeBuild places its output build artifacts into an S3 bucket for CodePipeline to pick up for the deploy stage.
+KEY FEATURES: High durability (99.999999999% - 11 nines), high availability, versioning (keeping multiple versions of an object), and storage classes (e.g., S3 Standard, S3 Glacier for archiving).
+KEY TERMINOLOGIES: Object storage, Buckets, Objects (Keys), Durability, Availability, Storage classes, Static website hosting.
+
+
+AWS CodePipeline
+
+DEFINITION: AWS CodePipeline is a fully managed continuous delivery (CD) service that automates the release pipeline for fast and reliable updates.
+METHODOLOGY: It creates a visual workflow (a "pipeline") consisting of "Stages" and "Actions."
+PIPELINE STAGES:
+  - Source Stage: Connects to a source repository (like GitHub, Bitbucket, or S3). A new commit automatically triggers the pipeline.
+  - Build Stage: Integrates with AWS CodeBuild (or Jenkins) to compile code and run tests. It takes the source from the previous stage and produces an artifact.
+  - Deploy Stage: Takes the build artifact and deploys it to a target environment using services like AWS CodeDeploy (for EC2), AWS Elastic Beanstalk, or S3 (for static sites).
+WORKFLOW: CodePipeline automates the entire process from a code check-in to deployment, ensuring a consistent and reliable release process. It manages the artifacts between stages.
+KEY TERMINOLOGIES: Continuous Delivery (CD), Release pipeline, Stages, Actions, Source, Build, Deploy, Artifacts.
+
+
+Amazon EC2 (Elastic Compute Cloud)
+
+DEFINITION: Amazon EC2 provides secure and resizable virtual servers, known as "instances," in the cloud. It is the foundational "Infrastructure-as-a-Service" (IaaS) offering.
+CORE CONCEPTS:
+  - AMI (Amazon Machine Image): A template that defines the operating system and initial software for an instance.
+  - Instance Type: Defines the hardware (CPU, memory, storage) for the instance (e.g., `t2.micro`, `m5.large`).
+  - Security Groups: A virtual firewall at the instance level that controls inbound and outbound traffic (e.g., "Allow SSH on port 22").
+ROLE IN DEPLOYMENT: In our pipeline, EC2 instances are the *target* environment where the application runs.
+METHODOLOGY: The "Deploy" stage of CodePipeline uses a service called AWS CodeDeploy. A CodeDeploy agent running on the EC2 instance pulls the new application build (artifact) from S3 and follows instructions in an `appspec.yml` file to stop the old version, install the new one, and start it.
+KEY TERMINOLOGIES: Instance, AMI, Instance Type, Security Group, IaaS, AWS CodeDeploy, `appspec.yml`.
+
+
+=============================
+Exp4: Kubernetes (K8s)
+=============================
+
+Kubernetes (K8s)
+
+DEFINITION: Kubernetes is an open-source container orchestration platform. It automates the deployment, scaling, and management of containerized applications (like Docker containers) at scale.
+PROBLEM SOLVED: While Docker is used to *build* and *run* individual containers, Kubernetes is used to *manage* hundreds or thousands of containers across a fleet of servers (a "cluster").
+ARCHITECTURE (Core Components):
+  - Cluster: The entire Kubernetes system.
+  - Control Plane (Master Node): The "brain" of the cluster. It makes global decisions (like scheduling) and maintains the cluster's desired state. Its components include the API Server, etcd (a key-value store for cluster state), and Scheduler.
+  - Node (Worker Node): A server (VM or physical) where the containers actually run. Each node runs a Kubelet (agent that communicates with the control plane) and a Kube-proxy (manages network).
+CORE CONCEPTS (Objects):
+  - Pod: The smallest and simplest deployable unit in Kubernetes. It is a wrapper around one or more containers (e.g., a Docker container). Pods are typically ephemeral (they can be destroyed and recreated).
+  - Deployment: A resource object that provides declarative updates for Pods. You define the *desired state* (e.g., "I want 3 replicas of my app container"), and the Deployment Controller works to make the *actual state* match. It handles scaling and rolling updates.
+  - Service: An abstract way to expose an application running on a set of Pods as a network service. It provides a stable IP address and load balancing, so even if Pods are destroyed, the service endpoint remains the same.
+  - ConfigMap / Secret: Used to decouple configuration data and sensitive data (like API keys or passwords) from the container images.
+METHODOLOGY: We define our application's desired state using YAML manifest files. These files describe the Deployments, Services, and other objects. We use the command-line tool `kubectl` to apply these manifests to the cluster (e.g., `kubectl apply -f my-app.yaml`). Kubernetes then takes over, provisioning and managing the resources automatically.
+KEY TERMINOLOGIES: Container Orchestration, Cluster, Control Plane, Node, Pod, Deployment, Service, `kubectl`, YAML manifests, Desired State.
+
+=======================================================
+Exp5&6: Installation of Terraform, build and destroy
+=======================================================
+
+Terraform
+
+DEFINITION: Terraform is an open-source Infrastructure as Code (IaC) tool by HashiCorp. It allows you to safely and predictably build, change, and version cloud infrastructure using declarative configuration files.
+LANGUAGE: It uses a declarative language called HCL (HashiCorp Configuration Language). You *declare* the "desired state" of your infrastructure (e.g., "I want one EC2 instance and one S3 bucket"), and Terraform figures out *how* to create it.
+STATE MANAGEMENT: Terraform maintains a state file (e.g., `terraform.tfstate`) that maps the resources defined in your code to the actual resources created in the cloud. This file is crucial for Terraform to know what it manages.
+CORE WORKFLOW:
+  1. `terraform init`: Initializes the working directory. It downloads the necessary "provider" (e.g., the AWS provider) to interact with the cloud API.
+  2. `terraform plan`: Creates an execution plan. It compares your HCL code (desired state) with the `tfstate` file (current state) and shows exactly what actions it will take (create, modify, or destroy).
+  3. `terraform apply`: Executes the plan and builds or updates the infrastructure.
+  4. `terraform destroy`: Reads the state file and removes all the infrastructure managed by that configuration.
+METHODOLOGY: We write `.tf` files to define our AWS resources (like VPCs, EC2 instances, and security groups). We use the core workflow (init, plan, apply) to provision the environment, and `destroy` to tear it down, ensuring a repeatable and automated setup.
+KEY TERMINOLOGIES: Infrastructure as Code (IaC), Declarative (HCL), State file (`.tfstate`), Providers, `init`, `plan`, `apply`, `destroy`.
+
+===================================
+Exp7&8: Jenkins and SonarQube
+===================================
+
+Jenkins
+
+DEFINITION: Jenkins is an open-source, self-hosted automation server. It is a fundamental tool for Continuous Integration (CI).
+FUNCTION: It automates the non-human parts of the software development process, such as building, testing, and deploying applications.
+METHODOLOGY: Jenkins uses "jobs" or "pipelines" to define a series of steps.
+PIPELINE-AS-CODE: Modern Jenkins pipelines are defined in a `Jenkinsfile` (a Groovy script) stored in the source code repository. This file defines "stages" like:
+  1. Checkout: Pulls the latest code from Git.
+  2. Build: Compiles the code (e.g., `mvn package`).
+  3. Test: Runs automated unit tests.
+  4. Deploy: Pushes the application to a staging or production server.
+TRIGGERING: Jenkins can be triggered by events (like a `git push` via webhooks) or run on a schedule, ensuring code is integrated and tested frequently.
+PLUGIN ECOSYSTEM: Jenkins' power comes from its thousands of plugins, which provide integrations with tools like Git, Docker, SonarQube, and AWS.
+KEY TERMINOLOGIES: Continuous Integration (CI), Automation server, Job/Pipeline, `Jenkinsfile`, Pipeline-as-Code, Stages, Webhooks, Plugins.
+
+
+SonarQube
+
+DEFINITION: SonarQube is an open-source platform for static code analysis. It automatically reviews code to detect bugs, vulnerabilities, and "code smells".
+PURPOSE: Its goal is to improve overall code quality, maintainability, and security.
+CORE METRICS:
+  - Bugs: Code that will likely lead to an error.
+  - Vulnerabilities: Security-related issues (e.g., SQL injection, hardcoded passwords).
+  - Code Smells: Maintainability issues that make code confusing or hard to change (also known as Technical Debt).
+  - Code Coverage: The percentage of code that is covered by automated tests.
+  - Duplication: Blocks of duplicated code.
+QUALITY GATE: This is a key feature. A Quality Gate is a set of conditions the code must meet to pass (e.g., "Code Coverage > 80%", "No new 'Bugs'"). If the code fails the Quality Gate, SonarQube can fail the build.
+KEY TERMINOLOGIES: Static code analysis, Code quality, Code security, Bugs, Vulnerabilities, Code Smells, Technical Debt, Code Coverage, Quality Gate.
+
+
+Jenkins and SonarQube Integration
+
+RELATIONSHIP: Jenkins and SonarQube work together to form a robust CI pipeline. Jenkins *builds* the code, and SonarQube *analyzes* it.
+METHODOLOGY:
+  1. We add a "SonarQube Analysis" stage to our `Jenkinsfile`.
+  2. Jenkins (using the SonarScanner plugin) runs the build and then sends the compiled code and test reports to the SonarQube server for analysis.
+  3. After the analysis, Jenkins can be configured to "check the Quality Gate."
+  4. If the SonarQube Quality Gate fails, Jenkins will fail the pipeline. This prevents low-quality or insecure code from being deployed.
+GOAL: This integration creates a feedback loop for developers, ensuring that code quality standards are automatically enforced with every commit.
+
+=============================
+Exp9&10: Nagios and NRPE
+=============================
+
+Nagios
+
+DEFINITION: Nagios is an open-source infrastructure monitoring tool. It monitors the health and performance of hosts (servers, network devices) and services (HTTP, SSH, disk space).
+FUNCTION: Its primary job is to monitor critical systems and send alerts to administrators when a system or service fails or performance degrades (e.g., high CPU, low disk space).
+CORE CONCEPTS:
+  - Hosts: The physical or virtual machines and network devices being monitored.
+  - Services: Specific checks associated with a host (e.g., CPU load, memory usage, HTTP server status).
+  - States: Services are always in one of four states: OK, WARNING, CRITICAL, or UNKNOWN.
+  - Alerting: Nagios sends notifications (via email, SMS, etc.) when a service state changes, especially to WARNING or CRITICAL.
+  - Plugins: Nagios itself is just a scheduler; "plugins" are the actual scripts that run the checks (e.g., `check_http`, `check_ping`).
+
+
+NRPE (Nagios Remote Plugin Executor)
+
+DEFINITION: NRPE is a plugin (or add-on) for Nagios that allows it to monitor "local" resources on remote Linux/Unix machines.
+PROBLEM SOLVED: Nagios can easily check *public* services (like HTTP, SSH) from the outside. But it cannot check *internal* metrics (like CPU load, disk space, or memory) without help.
+METHODOLOGY (How it works):
+  1. NRPE Daemon: This software is installed on the *remote* Linux machine (the client) being monitored. It listens on port 5666.
+  2. `check_nrpe` Plugin: This plugin is installed on the *Nagios server* (the host).
+  3. Execution Flow: The Nagios server uses `check_nrpe` to connect to the NRPE daemon on the remote machine. It commands the daemon to run a specific local plugin (e.g., `check_load`). The daemon runs the check locally and sends the result (e.g., "OK: CPU load is 0.5") back to the Nagios server.
+FUNCTION: NRPE acts as a secure proxy to allow the Nagios server to remotely execute plugins on target machines to gather internal metrics.
+KEY TERMINOLOGIES: Remote execution, NRPE daemon, `check_nrpe` plugin, Local resources (CPU/disk), Active checks.
+
+===============================
+Exp11: AWS Lambda Function
+===============================
+
+AWS Lambda
+
+DEFINITION: AWS Lambda is a serverless, event-driven compute service. It allows you to run code for virtually any type of application or backend service without provisioning or managing servers.
+SERVERLESS (FaaS): "Serverless" means AWS handles all the infrastructure management, including server provisioning, scaling, patching, and availability. You only manage your code. This is also known as "Function-as-a-Service" (FaaS).
+EVENT-DRIVEN: Lambda functions are triggered by events from other AWS services or applications.
+COMMON TRIGGERS:
+  - API Gateway: Triggers the function when an HTTP request (GET, POST, etc.) is made to an API endpoint.
+  - S3: Triggers the function when an object is created or deleted in a bucket (e.g., for resizing an uploaded image).
+  - DynamoDB Streams: Triggers the function when data is added or updated in a database table.
+  - EventBridge/CloudWatch Events: Triggers the function on a schedule (like a cron job).
+METHODOLOGY: We write our code (the "Lambda function") in a supported language (e.g., Python, Node.js). We zip and upload this code to Lambda. We then configure an event source (like S3) to trigger the function.
+PRICING: You pay only for the compute time you consume (per millisecond) and the number of times your code is triggered. You are not billed when the code is not running.
+KEY TERMINOLOGIES: Serverless, Function-as-a-Service (FaaS), Event-driven, Triggers (API Gateway, S3), Stateless.
+
