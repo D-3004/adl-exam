@@ -33,6 +33,23 @@ The next screen presents the option of installing suggested plugins or selecting
 
 When the installation is complete, you will be prompted to set up the first administrative user. It’s possible to skip this step and continue as admin using the initial password we used above, but we’ll take a moment to create the user.
 
+If Jenkins is already setup then run this to reset the password of it:
+sudo nano /var/lib/jenkins/config.xml
+<useSecurity>true</useSecurity>
+<useSecurity>false</useSecurity>
+sudo systemctl restart jenkins
+Jenkins dashboard par, Manage Jenkins > Configure Global Security par jao.
+
+Security Realm section mein, Jenkins’ own user database select karo.
+
+Authorization section mein, Logged-in users can do anything select karo. (Isse naya user jo bhi banega usko admin rights mil jayenge).
+
+Allow users to sign up wale checkbox ko tick (check) karo. Ye bahut important hai naya user banane ke liye.
+
+Save par click karo.
+
+
+
 3. SonarQube Setup
 sudo docker run -d -p 9000:9000 SonarQube
 
@@ -88,6 +105,7 @@ You will be taken to the job's page. Click Build Now on the left menu.
 A build will start. You can click on the build number (e.g., #1) and then click Console Output to view the log.
 You should see it clone the repository and finish with Finished: SUCCESS.
 As your manual concludes, you have successfully installed Jenkins and SonarQube and created a CI pipeline using a GitHub repository.
+
 
 
 
